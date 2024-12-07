@@ -1,0 +1,13 @@
+{
+  "host": "localhost",
+  "port": 3030,
+  "public": "./public/",
+  "origins": [
+    "http://localhost:3030"
+  ],
+  "paginate": {
+    "default": 10,
+    "max": 50
+  },
+  "mongodb": "mongodb+srv://mongotut:testing123@cluster0.zazcasu.mongodb.net/CompanyDB?retryWrites=true&w=majority&appName=Cluster0"
+}
