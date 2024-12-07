@@ -9,5 +9,36 @@
     "default": 10,
     "max": 50
   },
-  "mongodb": "mongodb+srv://mongotut:testing123@cluster0.zazcasu.mongodb.net/CompanyDB?retryWrites=true&w=majority&appName=Cluster0"
+  "mongodb": "mongodb+srv://shaybishay:isGnL8txtXdG59I6@cluster4.tpicq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster4",
+  "authentication": {
+    "entity": "user",
+    "service": "users",
+    "secret": "7nt+evPEsCHqJHUu0xvYw503rSPZJ43S",
+    "authStrategies": [
+      "jwt",
+      "local"
+    ],
+    "jwtOptions": {
+      "header": {
+        "typ": "access"
+      },
+      "audience": "https://yourdomain.com",
+      "algorithm": "HS256",
+      "expiresIn": "1d"
+    },
+    "local": {
+      "usernameField": "email",
+      "passwordField": "password"
+    },
+    "oauth": {
+      "google": {
+        "key": "<Client ID>",
+        "secret": "<Client secret>"
+      },
+      "github": {
+        "key": "<Client ID>",
+        "secret": "<Client secret>"
+      }
+    }
+  }
 }
