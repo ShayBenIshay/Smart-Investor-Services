@@ -4,11 +4,16 @@ import type { TransportConnection, Application } from '@feathersjs/feathers'
 import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
 
+import { transactionsClient } from './services/transactions/transactions.shared'
+export type {
+  Transactions,
+  TransactionsData,
+  TransactionsQuery,
+  TransactionsPatch
+} from './services/transactions/transactions.shared'
+
 import { userClient } from './services/users/users.shared'
 export type { User, UserData, UserQuery, UserPatch } from './services/users/users.shared'
-
-import { userClient } from './services/user/user.shared'
-export type { User, UserData, UserQuery, UserPatch } from './services/user/user.shared'
 
 export interface Configuration {
   connection: TransportConnection<ServiceTypes>
@@ -26,7 +31,7 @@ export type ClientApplication = Application<ServiceTypes, Configuration>
  * @see https://dove.feathersjs.com/api/client.html
  * @returns The Feathers client application
  */
-export const createClient = <Configuration = any,>(
+export const createClient = <Configuration = any>(
   connection: TransportConnection<ServiceTypes>,
   authenticationOptions: Partial<AuthenticationClientOptions> = {}
 ) => {
@@ -38,5 +43,6 @@ export const createClient = <Configuration = any,>(
 
   client.configure(userClient)
   client.configure(userClient)
+  client.configure(transactionsClient)
   return client
 }

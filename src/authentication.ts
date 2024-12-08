@@ -1,4 +1,3 @@
-// For more information about this file see https://dove.feathersjs.com/guides/cli/authentication.html
 import { AuthenticationService, JWTStrategy } from '@feathersjs/authentication'
 import { LocalStrategy } from '@feathersjs/authentication-local'
 import { oauth, OAuthStrategy } from '@feathersjs/authentication-oauth'
@@ -14,12 +13,12 @@ declare module './declarations' {
 
 interface GitHubProfile {
   avatar_url: string
-  email: string // Email might not always be available
-  [key: string]: any // To handle additional properties in the GitHub profile
+  email: string
+  [key: string]: any
 }
 
 interface BaseData {
-  [key: string]: any // Adjust this based on your app's base data structure
+  [key: string]: any
 }
 
 class GitHubStrategy extends OAuthStrategy {
@@ -28,9 +27,7 @@ class GitHubStrategy extends OAuthStrategy {
 
     return {
       ...baseData,
-      // The GitHub profile image
       avatar: profile.avatar_url,
-      // The user email address (if available)
       email: profile.email
     }
   }
