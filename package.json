@@ -1,6 +1,6 @@
 {
   "name": "Smart-Investor-feathers",
-  "description": "          This App will help you track your tranasctions & manage your portfolio",
+  "description": "This App will help you track your tranasctions & manage your portfolio",
   "version": "0.0.0",
   "homepage": "",
   "private": true,
@@ -60,6 +60,7 @@
     "@feathersjs/transport-commons": "^5.0.31",
     "@feathersjs/typebox": "^5.0.31",
     "crypto": "^1.0.1",
+    "dotenv": "^16.4.7",
     "mongodb": "^6.10.0",
     "winston": "^3.17.0"
   },
