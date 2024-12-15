@@ -9,7 +9,7 @@
     "default": 10,
     "max": 50
   },
-  "mongodb": "mongodb+srv://shaybishay:isGnL8txtXdG59I6@cluster4.tpicq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster4",
+  "mongodb": "",
   "authentication": {
     "entity": "user",
     "service": "users",

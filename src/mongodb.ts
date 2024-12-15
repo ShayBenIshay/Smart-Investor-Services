@@ -1,13 +1,9 @@
-// For more information about this file see https://dove.feathersjs.com/guides/cli/databases.html
 import { MongoClient } from 'mongodb'
 import type { Db } from 'mongodb'
 import type { Application } from './declarations'
+import * as dotenv from 'dotenv'
 
-// const mongodbUri = process.env.MONGODB_URI
-
-// if (!mongodbUri) {
-//   throw new Error('MONGODB_URI environment variable is not set')
-// }
+dotenv.config()
 
 declare module './declarations' {
   interface Configuration {
@@ -16,7 +12,7 @@ declare module './declarations' {
 }
 
 export const mongodb = (app: Application) => {
-  const connection = app.get('mongodb') as string
+  const connection = process.env.MONGODB_URI as string
 
   const database = new URL(connection).pathname.substring(1)
   const mongoClient = MongoClient.connect(connection).then((client) => client.db(database))
