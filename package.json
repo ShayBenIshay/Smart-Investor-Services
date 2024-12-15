@@ -57,7 +57,7 @@
     "@feathersjs/socketio": "^5.0.31",
     "@feathersjs/typebox": "^5.0.31",
     "dotenv": "^16.4.7",
-    "mongodb": "^6.10.0",
+    "mongodb": "^6.12.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {
