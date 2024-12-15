@@ -3,6 +3,7 @@ import { authenticate } from '@feathersjs/authentication'
 
 import { hooks as schemaHooks } from '@feathersjs/schema'
 import { createDocument } from '../../hooks/create-document'
+import { createPortfolio } from '../../hooks/create-portfolio'
 
 import {
   userDataValidator,
@@ -51,7 +52,7 @@ export const user = (app: Application) => {
       remove: []
     },
     after: {
-      create: [createDocument]
+      create: [createDocument, createPortfolio]
     },
     error: {
       all: []
