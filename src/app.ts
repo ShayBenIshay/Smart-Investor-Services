@@ -10,16 +10,18 @@ import { mongodb } from './mongodb'
 import { authentication } from './authentication'
 import { services } from './services/index'
 import { channels } from './channels'
+import * as dotenv from 'dotenv'
 
+dotenv.config()
 const app: Application = koa(feathers())
 
 app.configure(configuration(configurationValidator))
 
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: process.env.FRONTEND_CLIENT,
     allowHeaders: ['Content-Type', 'Authorization'],
-    credentials: true // Allow cookies and other credentials
+    credentials: true
   })
 )
 
@@ -32,10 +34,10 @@ app.configure(rest())
 app.configure(
   socketio({
     cors: {
-      origin: 'http://localhost:3000', // Allow connections from frontend
+      origin: process.env.FRONTEND_CLIENT,
       methods: ['GET', 'POST'],
       allowedHeaders: ['Content-Type'],
-      credentials: true // Allow cookies to be sent
+      credentials: true
     }
   })
 )
