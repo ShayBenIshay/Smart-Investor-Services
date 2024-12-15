@@ -3,7 +3,8 @@
   "port": 3030,
   "public": "./public/",
   "origins": [
-    "http://localhost:3030"
+    "http://localhost:3030",
+    "https://smart-investor.onrender.com"
   ],
   "paginate": {
     "default": 10,
@@ -22,7 +23,7 @@
       "header": {
         "typ": "access"
       },
-      "audience": "https://yourdomain.com",
+      "audience": "https://services-smart-investor.onrender.com",
       "algorithm": "HS256",
       "expiresIn": "1d"
     },
