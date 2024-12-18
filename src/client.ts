@@ -3,8 +3,10 @@ import { feathers } from '@feathersjs/feathers'
 import type { TransportConnection, Application } from '@feathersjs/feathers'
 import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
-
 import { portfolioClient } from './services/portfolio/portfolio.shared'
+import { cacheClient } from './services/cache/cache.shared.js'
+import { polygonApiClient } from './services/polygon-api/polygon-api.shared'
+
 export type {
   Portfolio,
   PortfolioData,
@@ -39,7 +41,7 @@ export type ClientApplication = Application<ServiceTypes, Configuration>
  * @see https://dove.feathersjs.com/api/client.html
  * @returns The Feathers client application
  */
-export const createClient = <Configuration = any,>(
+export const createClient = <Configuration = any>(
   connection: TransportConnection<ServiceTypes>,
   authenticationOptions: Partial<AuthenticationClientOptions> = {}
 ) => {
@@ -53,5 +55,8 @@ export const createClient = <Configuration = any,>(
   client.configure(userClient)
   client.configure(transactionsClient)
   client.configure(portfolioClient)
+  client.configure(cacheClient)
+  client.configure(polygonApiClient)
+
   return client
 }
