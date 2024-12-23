@@ -27,7 +27,7 @@ class Throttle {
     this.processQueue()
   }
 
-  enqueue(ticker, date, priority = 'system') {
+  enqueueClose(ticker, date, priority = 'system') {
     return new Promise((resolve, reject) => {
       const requestKey = `${ticker}_${date}`
 
@@ -85,4 +85,4 @@ class Throttle {
 }
 
 const throttle = new Throttle(5)
-export default throttle.enqueue.bind(throttle)
+export default throttle.enqueueClose.bind(throttle)

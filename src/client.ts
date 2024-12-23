@@ -3,6 +3,9 @@ import { feathers } from '@feathersjs/feathers'
 import type { TransportConnection, Application } from '@feathersjs/feathers'
 import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
+
+import { throttleClient } from './services/throttle/throttle.shared.js'
+
 import { portfolioClient } from './services/portfolio/portfolio.shared'
 import { cacheClient } from './services/cache/cache.shared.js'
 import { polygonApiClient } from './services/polygon-api/polygon-api.shared'
@@ -52,11 +55,11 @@ export const createClient = <Configuration = any>(
   client.set('connection', connection)
 
   client.configure(userClient)
-  client.configure(userClient)
   client.configure(transactionsClient)
   client.configure(portfolioClient)
   client.configure(cacheClient)
   client.configure(polygonApiClient)
 
+  client.configure(throttleClient)
   return client
 }
