@@ -11,6 +11,7 @@ export const transactionsSchema = Type.Object(
   {
     _id: ObjectIdSchema(),
     userId: ObjectIdSchema(),
+    agentId: ObjectIdSchema(),
     ticker: Type.String(),
     price: Type.Number(),
     executedAt: Type.String(),
@@ -49,7 +50,7 @@ export const transactionsExternalResolver = resolve<Transactions, HookContext<Tr
 
 export const transactionsDataSchema = Type.Pick(
   transactionsSchema,
-  ['ticker', 'price', 'executedAt', 'operation', 'papers'],
+  ['ticker', 'price', 'executedAt', 'operation', 'papers', 'agentId'],
   {
     $id: 'TransactionsData'
   }

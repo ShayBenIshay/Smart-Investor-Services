@@ -1,3 +1,4 @@
+import { agent } from './agent/agent'
 import { portfolio } from './portfolio/portfolio'
 import { transactions } from './transactions/transactions'
 import { user } from './users/users'
@@ -7,6 +8,7 @@ import { polygonApi } from './polygon-api/polygon-api.js'
 import type { Application } from '../declarations'
 
 export const services = (app: Application) => {
+  app.configure(agent)
   app.configure(polygonApi)
   app.configure(portfolio)
   app.configure(transactions)
