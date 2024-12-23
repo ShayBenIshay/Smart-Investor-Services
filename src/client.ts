@@ -5,6 +5,8 @@ import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
 
 import { throttleClient } from './services/throttle/throttle.shared.js'
+import { agentClient } from './services/agent/agent.shared'
+export type { Agent, AgentData, AgentQuery, AgentPatch } from './services/agent/agent.shared'
 
 import { portfolioClient } from './services/portfolio/portfolio.shared'
 import { cacheClient } from './services/cache/cache.shared.js'
@@ -61,5 +63,6 @@ export const createClient = <Configuration = any>(
   client.configure(polygonApiClient)
 
   client.configure(throttleClient)
+  client.configure(agentClient)
   return client
 }

@@ -11,6 +11,7 @@ export const portfolioSchema = Type.Object(
   {
     _id: ObjectIdSchema(),
     userId: ObjectIdSchema(),
+    agentId: ObjectIdSchema(),
     cash: Type.Number()
   },
   { $id: 'Portfolio', additionalProperties: false }
@@ -22,7 +23,7 @@ export const portfolioResolver = resolve<Portfolio, HookContext<PortfolioService
 export const portfolioExternalResolver = resolve<Portfolio, HookContext<PortfolioService>>({})
 
 // Schema for creating new entries
-export const portfolioDataSchema = Type.Pick(portfolioSchema, ['userId', 'cash'], {
+export const portfolioDataSchema = Type.Pick(portfolioSchema, ['userId', 'agentId', 'cash'], {
   $id: 'PortfolioData'
 })
 export type PortfolioData = Static<typeof portfolioDataSchema>
