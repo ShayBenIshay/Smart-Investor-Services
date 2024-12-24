@@ -1,13 +1,15 @@
 // For more information about this file see https://dove.feathersjs.com/guides/cli/service.class.html#database-services
 import { MongoDBService } from '@feathersjs/mongodb'
-import enqueueClose from '../../throttle.js'
+import enqueue from '../../throttle.js'
 
 export class ThrottleService extends MongoDBService {
   async find(params) {
     const query = params.query
-
-    if (query.name === 'close') {
+    if (query.name === 'open-close') {
       return await this.getCloseData(query)
+    }
+    if (query.name === 'prev') {
+      return await this.getLastCloseData(query)
     }
 
     if (query.name === 'aggregate') {
@@ -17,12 +19,27 @@ export class ThrottleService extends MongoDBService {
 
   async getCloseData(query) {
     const { ticker, date, priority = 'system' } = query
+
     if (!ticker || !date) {
       throw new Error('Both ticker and date are required.')
     }
 
-    return await enqueueClose(ticker, date, priority)
+    return await enqueue('open-close', { ticker, date, priority })
       .then((data) => [{ close: data?.close }])
+      .catch((error) => {
+        return undefined
+      })
+  }
+
+  async getLastCloseData(query) {
+    const { ticker, priority = 'system' } = query
+
+    if (!ticker) {
+      throw new Error('ticker is required.')
+    }
+
+    return await enqueue('prev', { ticker, priority })
+      .then((data) => [{ close: data?.results[0].c }])
       .catch((error) => {
         return undefined
       })

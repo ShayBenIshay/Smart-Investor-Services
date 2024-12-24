@@ -27,7 +27,17 @@ class Throttle {
     this.processQueue()
   }
 
-  enqueueClose(ticker, date, priority = 'system') {
+  enqueue(name, params) {
+    if (name === 'open-close') {
+      return this.enqueueClose(params)
+    }
+    if (name === 'prev') {
+      return this.enqueueLastClose(params)
+    }
+  }
+
+  enqueueClose(params) {
+    const { ticker, date, priority = 'system' } = params
     return new Promise((resolve, reject) => {
       const requestKey = `${ticker}_${date}`
 
@@ -70,6 +80,51 @@ class Throttle {
     })
   }
 
+  enqueueLastClose(params) {
+    const { ticker, priority = 'system' } = params
+    return new Promise((resolve, reject) => {
+      const date = new Date().toISOString().split('T')[0]
+      const requestKey = `${ticker}_${date}`
+
+      if (this.pendingRequests.has(requestKey)) {
+        console.log(`Duplicate request sharing promise: ${requestKey}`)
+        return this.pendingRequests.get(requestKey).then(resolve).catch(reject)
+      }
+
+      const apiCall = async () => {
+        const apiKey = process.env.POLYGON_API_KEY
+        const url = `https://api.polygon.io/v2/aggs/ticker/${ticker}/prev?adjusted=true`
+        try {
+          const response = await axios.get(url, {
+            params: { apiKey }
+          })
+          const data = response.data
+          const close = data.results[0].c
+          console.log('API Response:', { ticker, close })
+          resolve(data)
+        } catch (error) {
+          reject(error)
+        } finally {
+          this.pendingRequests.delete(requestKey)
+        }
+      }
+
+      const apiCallPromise = new Promise((apiResolve, apiReject) => {
+        const callData = { apiCall, ticker, date, priority, resolve: apiResolve, reject: apiReject }
+
+        if (priority === 'user') {
+          this.callQueue.unshift(callData)
+        } else {
+          this.callQueue.push(callData)
+        }
+
+        this.processQueue()
+      })
+
+      this.pendingRequests.set(requestKey, apiCallPromise)
+    })
+  }
+
   async processQueue() {
     if (this.isRunning) return
     this.isRunning = true
@@ -85,4 +140,4 @@ class Throttle {
 }
 
 const throttle = new Throttle(5)
-export default throttle.enqueueClose.bind(throttle)
+export default throttle.enqueue.bind(throttle)
