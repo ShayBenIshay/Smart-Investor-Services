@@ -34,6 +34,9 @@ class Throttle {
     if (name === 'prev') {
       return this.enqueueLastClose(params)
     }
+    if (name === 'aggregate') {
+      return this.enqueueAggregate(params)
+    }
   }
 
   enqueueClose(params) {
@@ -55,7 +58,7 @@ class Throttle {
           })
 
           const data = response.data
-          console.log('API Response:', { ticker, date, close: data?.close })
+          console.log('/throttle open-close API Response:', { ticker, date, close: data?.close })
           resolve(data)
         } catch (error) {
           reject(error)
@@ -65,7 +68,7 @@ class Throttle {
       }
 
       const apiCallPromise = new Promise((apiResolve, apiReject) => {
-        const callData = { apiCall, ticker, date, priority, resolve: apiResolve, reject: apiReject }
+        const callData = { apiCall, requestKey, priority, resolve: apiResolve, reject: apiReject }
 
         if (priority === 'user') {
           this.callQueue.unshift(callData)
@@ -100,7 +103,7 @@ class Throttle {
           })
           const data = response.data
           const close = data.results[0].c
-          console.log('API Response:', { ticker, close })
+          console.log('/throttle last close API Response:', { ticker, close })
           resolve(data)
         } catch (error) {
           reject(error)
@@ -110,7 +113,67 @@ class Throttle {
       }
 
       const apiCallPromise = new Promise((apiResolve, apiReject) => {
-        const callData = { apiCall, ticker, date, priority, resolve: apiResolve, reject: apiReject }
+        const callData = { apiCall, requestKey, priority, resolve: apiResolve, reject: apiReject }
+
+        if (priority === 'user') {
+          this.callQueue.unshift(callData)
+        } else {
+          this.callQueue.push(callData)
+        }
+
+        this.processQueue()
+      })
+
+      this.pendingRequests.set(requestKey, apiCallPromise)
+    })
+  }
+
+  enqueueAggregate(params) {
+    const {
+      ticker,
+      timespan,
+      from_date,
+      to_date,
+      adjusted = 'true',
+      sort = 'asc',
+      priority = 'system'
+    } = params
+
+    return new Promise((resolve, reject) => {
+      const requestKey = `${ticker}_${from_date}-${to_date}`
+
+      if (this.pendingRequests.has(requestKey)) {
+        console.log(`Duplicate request sharing promise: ${requestKey}`)
+        return this.pendingRequests.get(requestKey).then(resolve).catch(reject)
+      }
+
+      const apiCall = async () => {
+        const apiKey = process.env.POLYGON_API_KEY
+        const url = `https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/${timespan}/${from_date}/${to_date}?adjusted=${adjusted}&sort=${sort}`
+        try {
+          const response = await axios.get(url, {
+            params: { apiKey }
+          })
+          const data = response.data
+          const closeArray = data.results
+
+          // console.log('/throttle aggregate API Response:', { ticker, closeArray })
+          resolve(data)
+        } catch (error) {
+          reject(error)
+        } finally {
+          this.pendingRequests.delete(requestKey)
+        }
+      }
+
+      const apiCallPromise = new Promise((apiResolve, apiReject) => {
+        const callData = {
+          apiCall,
+          requestKey,
+          priority,
+          resolve: apiResolve,
+          reject: apiReject
+        }
 
         if (priority === 'user') {
           this.callQueue.unshift(callData)

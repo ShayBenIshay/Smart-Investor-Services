@@ -46,15 +46,18 @@ export class ThrottleService extends MongoDBService {
   }
 
   async getAggregateData(query) {
+    console.log(query)
     const { ticker, timespan, from_date, to_date } = query
 
-    return {
-      ticker,
-      timespan,
-      from_date,
-      to_date,
-      aggregatedPrice: 567.89
+    if (!ticker || !timespan || !from_date || !to_date) {
+      throw new Error('ticker, timespan, from_date, to_date are required.')
     }
+
+    return await enqueue('aggregate', query)
+      .then((data) => data?.results)
+      .catch((error) => {
+        return undefined
+      })
   }
 }
 

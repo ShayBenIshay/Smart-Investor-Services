@@ -1,7 +1,7 @@
 import { authenticate } from '@feathersjs/authentication'
 
 import { hooks as schemaHooks } from '@feathersjs/schema'
-import { filterByUser } from '../../hooks/filter-transactions'
+// import { filterByUser } from '../../hooks/filter-transactions'
 import { createDocument } from '../../hooks/create-document'
 
 import {
@@ -15,14 +15,13 @@ import {
   transactionsQueryResolver
 } from './transactions.schema'
 
-import type { Application } from '../../declarations'
 import { TransactionsService, getOptions } from './transactions.class'
 import { transactionsPath, transactionsMethods } from './transactions.shared'
 
 export * from './transactions.class'
 export * from './transactions.schema'
 
-export const transactions = (app: Application) => {
+export const transactions = (app) => {
   app.use(transactionsPath, new TransactionsService(getOptions(app)), {
     methods: transactionsMethods,
     events: []
@@ -40,7 +39,8 @@ export const transactions = (app: Application) => {
         schemaHooks.validateQuery(transactionsQueryValidator),
         schemaHooks.resolveQuery(transactionsQueryResolver)
       ],
-      find: [filterByUser],
+      // find: [filterByUser],
+      find: [],
       get: [],
       create: [
         schemaHooks.validateData(transactionsDataValidator),
@@ -59,10 +59,4 @@ export const transactions = (app: Application) => {
       all: []
     }
   })
-}
-
-declare module '../../declarations' {
-  interface ServiceTypes {
-    [transactionsPath]: TransactionsService
-  }
 }

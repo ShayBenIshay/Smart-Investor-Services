@@ -6,11 +6,9 @@ import type { AuthenticationClientOptions } from '@feathersjs/authentication-cli
 
 import { throttleClient } from './services/throttle/throttle.shared.js'
 import { agentClient } from './services/agent/agent.shared'
-export type { Agent, AgentData, AgentQuery, AgentPatch } from './services/agent/agent.shared'
 
 import { portfolioClient } from './services/portfolio/portfolio.shared'
 import { cacheClient } from './services/cache/cache.shared.js'
-import { polygonApiClient } from './services/polygon-api/polygon-api.shared'
 
 export type {
   Portfolio,
@@ -19,13 +17,7 @@ export type {
   PortfolioPatch
 } from './services/portfolio/portfolio.shared'
 
-import { transactionsClient } from './services/transactions/transactions.shared'
-export type {
-  Transactions,
-  TransactionsData,
-  TransactionsQuery,
-  TransactionsPatch
-} from './services/transactions/transactions.shared'
+import { transactionsClient } from './services/transactions/transactions.shared.js'
 
 import { userClient } from './services/users/users.shared'
 export type { User, UserData, UserQuery, UserPatch } from './services/users/users.shared'
@@ -60,7 +52,6 @@ export const createClient = <Configuration = any>(
   client.configure(transactionsClient)
   client.configure(portfolioClient)
   client.configure(cacheClient)
-  client.configure(polygonApiClient)
 
   client.configure(throttleClient)
   client.configure(agentClient)

@@ -2,11 +2,8 @@
 import { resolve } from '@feathersjs/schema'
 import { Type, getValidator, querySyntax } from '@feathersjs/typebox'
 import { ObjectIdSchema } from '@feathersjs/typebox'
-import type { Static } from '@feathersjs/typebox'
 
-import type { HookContext } from '../../declarations'
 import { dataValidator, queryValidator } from '../../validators'
-import type { AgentService } from './agent.class'
 
 // Main data model schema
 export const agentSchema = Type.Object(
@@ -16,6 +13,7 @@ export const agentSchema = Type.Object(
     name: Type.String(),
     multiplier: Type.Number(),
     timespan: Type.String(),
+    preferences: Type.String(),
     updatedAt: Type.Object({
       $date: Type.Object({
         $numberLong: Type.String()
@@ -27,11 +25,11 @@ export const agentSchema = Type.Object(
       })
     })
   },
-  { $id: 'Agent', additionalProperties: false }
+  // { $id: 'Agent', additionalProperties: false }
+  { $id: 'Agent' }
 )
-export type Agent = Static<typeof agentSchema>
 export const agentValidator = getValidator(agentSchema, dataValidator)
-export const agentResolver = resolve<Agent, HookContext<AgentService>>({
+export const agentResolver = resolve({
   userId: async (_value, _agent, context) => {
     console.log(context.params.user?._id)
     return context.params.user?._id
@@ -46,15 +44,14 @@ export const agentResolver = resolve<Agent, HookContext<AgentService>>({
   }
 })
 
-export const agentExternalResolver = resolve<Agent, HookContext<AgentService>>({})
+export const agentExternalResolver = resolve({})
 
 // Schema for creating new entries
-export const agentDataSchema = Type.Pick(agentSchema, ['name', 'multiplier', 'timespan'], {
+export const agentDataSchema = Type.Pick(agentSchema, ['name', 'multiplier', 'timespan', 'preferences'], {
   $id: 'AgentData'
 })
-export type AgentData = Static<typeof agentDataSchema>
 export const agentDataValidator = getValidator(agentDataSchema, dataValidator)
-export const agentDataResolver = resolve<Agent, HookContext<AgentService>>({
+export const agentDataResolver = resolve({
   userId: async (_value, _transaction, context) => {
     return context?.params?.user?._id
   },
@@ -72,20 +69,27 @@ export const agentDataResolver = resolve<Agent, HookContext<AgentService>>({
 export const agentPatchSchema = Type.Partial(agentSchema, {
   $id: 'AgentPatch'
 })
-export type AgentPatch = Static<typeof agentPatchSchema>
 export const agentPatchValidator = getValidator(agentPatchSchema, dataValidator)
-export const agentPatchResolver = resolve<Agent, HookContext<AgentService>>({})
+export const agentPatchResolver = resolve({})
 
 // Schema for allowed query properties
-export const agentQueryProperties = Type.Pick(agentSchema, ['_id', 'userId'])
+export const agentQueryProperties = Type.Pick(agentSchema, [
+  '_id',
+  'name',
+  'multiplier',
+  'timespan',
+  'preferences',
+  'userId',
+  'agentId'
+])
 export const agentQuerySchema = Type.Intersect(
   [
     querySyntax(agentQueryProperties),
     // Add additional query properties here
     Type.Object({}, { additionalProperties: false })
+    // Type.Object({})
   ],
   { additionalProperties: false }
 )
-export type AgentQuery = Static<typeof agentQuerySchema>
 export const agentQueryValidator = getValidator(agentQuerySchema, queryValidator)
-export const agentQueryResolver = resolve<AgentQuery, HookContext<AgentService>>({})
+export const agentQueryResolver = resolve({})

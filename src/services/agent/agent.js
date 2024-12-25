@@ -17,7 +17,6 @@ import {
   agentQueryResolver
 } from './agent.schema'
 
-import type { Application } from '../../declarations'
 import { AgentService, getOptions } from './agent.class'
 import { agentPath, agentMethods } from './agent.shared'
 
@@ -25,7 +24,7 @@ export * from './agent.class'
 export * from './agent.schema'
 
 // A configure function that registers the service and its hooks via `app.configure`
-export const agent = (app: Application) => {
+export const agent = (app) => {
   // Register our service on the Feathers application
   app.use(agentPath, new AgentService(getOptions(app)), {
     // A list of all methods this service exposes externally
@@ -58,11 +57,4 @@ export const agent = (app: Application) => {
       all: []
     }
   })
-}
-
-// Add this service to the service type index
-declare module '../../declarations' {
-  interface ServiceTypes {
-    [agentPath]: AgentService
-  }
 }
