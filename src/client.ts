@@ -10,13 +10,6 @@ import { agentClient } from './services/agent/agent.shared'
 import { portfolioClient } from './services/portfolio/portfolio.shared'
 import { cacheClient } from './services/cache/cache.shared.js'
 
-export type {
-  Portfolio,
-  PortfolioData,
-  PortfolioQuery,
-  PortfolioPatch
-} from './services/portfolio/portfolio.shared'
-
 import { transactionsClient } from './services/transactions/transactions.shared.js'
 
 import { userClient } from './services/users/users.shared'
