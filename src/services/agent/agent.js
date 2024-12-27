@@ -35,20 +35,20 @@ export const agent = (app) => {
   // Initialize hooks
   app.service(agentPath).hooks({
     around: {
-      all: [
-        authenticate('jwt'),
-        schemaHooks.resolveExternal(agentExternalResolver),
-        schemaHooks.resolveResult(agentResolver)
-      ]
+      all: [schemaHooks.resolveExternal(agentExternalResolver), schemaHooks.resolveResult(agentResolver)]
     },
     before: {
       all: [schemaHooks.validateQuery(agentQueryValidator), schemaHooks.resolveQuery(agentQueryResolver)],
       find: [],
       get: [],
       // create: [schemaHooks.validateData(agentDataValidator), schemaHooks.resolveData(agentDataResolver)],
-      create: [handleCash, schemaHooks.resolveData(agentDataResolver)],
-      patch: [schemaHooks.validateData(agentPatchValidator), schemaHooks.resolveData(agentPatchResolver)],
-      remove: []
+      create: [authenticate('jwt'), handleCash, schemaHooks.resolveData(agentDataResolver)],
+      patch: [
+        authenticate('jwt'),
+        schemaHooks.validateData(agentPatchValidator),
+        schemaHooks.resolveData(agentPatchResolver)
+      ],
+      remove: [authenticate('jwt')]
     },
     after: {
       create: [createDocument, createAgentPortfolio]

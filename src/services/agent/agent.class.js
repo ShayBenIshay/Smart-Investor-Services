@@ -33,11 +33,16 @@ export class AgentService extends MongoDBService {
       return await this.Tweet(query)
     }
     if (query.name === 'find') {
-      const response = await super.find({
-        query: {
-          userId: new ObjectId(query.userId)
-        }
-      })
+      let response
+      if (!query.userId) {
+        response = await super.find({})
+      } else {
+        response = await super.find({
+          query: {
+            userId: new ObjectId(query.userId)
+          }
+        })
+      }
       return response.data
     }
   }
