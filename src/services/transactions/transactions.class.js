@@ -9,7 +9,6 @@ export class TransactionsService extends MongoDBService {
   }
   async find(params) {
     const query = params.query
-    console.log(params.query)
     const response = await super.find({
       query: {
         userId: new ObjectId(query.userId)

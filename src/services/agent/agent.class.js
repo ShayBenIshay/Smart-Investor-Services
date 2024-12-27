@@ -9,8 +9,19 @@ export class AgentService extends MongoDBService {
     this.app = app
   }
 
+  async create(params) {
+    const { func, ...object } = params
+    if (func === 'create') {
+      return await super.create(object)
+    }
+    if (func === 'trades') {
+      console.log('createee')
+      console.log(object)
+      return await this.makeTradeOrders(object)
+    }
+  }
+
   async find(params) {
-    console.log(params.query)
     const query = params.query
     if (query.name === 'portfolio') {
       return await this.createPortfolio(query)
@@ -31,6 +42,31 @@ export class AgentService extends MongoDBService {
     }
   }
 
+  async makeTradeOrders({ agentId, orders }) {
+    console.log(orders)
+    console.log(agentId)
+    console.log('executing the trades')
+    const executedAt = new Date()
+    orders.forEach(async (order) => {
+      try {
+        const transaction = {
+          userId: agentId,
+          ticker: order.ticker,
+          price: parseFloat(order.buy),
+          executedAt,
+          operation: 'buy',
+          papers: parseInt(order.papers, 10)
+        }
+        const transactioResponse = await this.app.service('transactions').create(transaction)
+        console.log(transactioResponse)
+      } catch (error) {
+        console.log('failed to create a transaction ', order.ticker)
+        return { message: 'Error creating Transactions' }
+      }
+    })
+    return { userId: agentId, message: 'All transactions got executed' }
+  }
+
   async createPortfolio(query) {
     const { userId, agentId } = query
     const portfolioResponse = await this.app.service('portfolio').find({
@@ -48,7 +84,6 @@ export class AgentService extends MongoDBService {
       const response = await axios.get(url, {
         params: { cash }
       })
-      console.log(response.data)
       return response.data
     } catch (error) {
       console.error('error occurred', error)
@@ -66,14 +101,12 @@ export class AgentService extends MongoDBService {
         timespan
       }
     })
-    console.log(throttleResponse)
 
     const url = `http://127.0.0.1:5000/trade`
     try {
       const response = await axios.get(url, {
         params: { ticker, from_date, to_date, timespan, history: throttleResponse }
       })
-      console.log(response.data)
       return response.data
     } catch (error) {
       console.error('error occurred', error)
@@ -88,7 +121,6 @@ export class AgentService extends MongoDBService {
       const response = await axios.get(url, {
         params: { ticker, price, operation, papers }
       })
-      console.log(response.data)
       return response.data
     } catch (error) {
       console.error('error occurred', error)

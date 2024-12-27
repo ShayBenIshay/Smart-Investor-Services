@@ -46,7 +46,6 @@ export class ThrottleService extends MongoDBService {
   }
 
   async getAggregateData(query) {
-    console.log(query)
     const { ticker, timespan, from_date, to_date } = query
 
     if (!ticker || !timespan || !from_date || !to_date) {

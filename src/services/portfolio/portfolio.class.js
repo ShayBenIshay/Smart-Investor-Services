@@ -8,7 +8,6 @@ export class PortfolioService extends MongoDBService {
   }
 
   async find(params) {
-    console.log(params.query)
     const query = params.query
     if (query.name === 'calculate') {
       return await this.calculateTotals(query)
@@ -62,8 +61,6 @@ export class PortfolioService extends MongoDBService {
 
       return acc
     }, {})
-
-    console.log(calcTotals)
 
     let totalValue = cash
 

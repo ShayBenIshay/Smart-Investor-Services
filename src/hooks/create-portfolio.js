@@ -19,6 +19,9 @@ export const createPortfolio = async (context) => {
 
 export const createAgentPortfolio = async (context) => {
   const { result, app, params } = context
+  if (!result._id) {
+    return context
+  }
   const portfolioService = app.service('portfolio')
   try {
     await portfolioService.create({

@@ -52,6 +52,7 @@ export const agent = (app) => {
     },
     after: {
       create: [createDocument, createAgentPortfolio]
+      // create: [createAgentPortfolio]
     },
     error: {
       all: []

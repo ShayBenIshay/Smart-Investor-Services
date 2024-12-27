@@ -31,7 +31,6 @@ export const agentSchema = Type.Object(
 export const agentValidator = getValidator(agentSchema, dataValidator)
 export const agentResolver = resolve({
   userId: async (_value, _agent, context) => {
-    console.log(context.params.user?._id)
     return context.params.user?._id
   },
   createdAt: async () => {
@@ -80,7 +79,8 @@ export const agentQueryProperties = Type.Pick(agentSchema, [
   'timespan',
   'preferences',
   'userId',
-  'agentId'
+  'agentId',
+  'orders'
 ])
 export const agentQuerySchema = Type.Intersect(
   [
