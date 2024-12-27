@@ -24,7 +24,7 @@ export interface ServiceTypes {}
 export type ClientApplication = Application<ServiceTypes, Configuration>
 
 /**
- * Returns a typed client for the Smart-Investor-feathers app.
+ * Returns a typed client for the Smart-Investor-services app.
  *
  * @param connection The REST or Socket.io Feathers client connection
  * @param authenticationOptions Additional settings for the authentication client

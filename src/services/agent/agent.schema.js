@@ -30,17 +30,17 @@ export const agentSchema = Type.Object(
 )
 export const agentValidator = getValidator(agentSchema, dataValidator)
 export const agentResolver = resolve({
-  userId: async (_value, _agent, context) => {
-    return context.params.user?._id
-  },
-  createdAt: async () => {
-    const now = new Date()
-    return { $date: { $numberLong: now.getTime().toString() } }
-  },
-  updatedAt: async () => {
-    const now = new Date()
-    return { $date: { $numberLong: now.getTime().toString() } }
-  }
+  // userId: async (_value, _agent, context) => {
+  //   return context.params.user?._id
+  // },
+  // createdAt: async () => {
+  //   const now = new Date()
+  //   return { $date: { $numberLong: now.getTime().toString() } }
+  // },
+  // updatedAt: async () => {
+  //   const now = new Date()
+  //   return { $date: { $numberLong: now.getTime().toString() } }
+  // }
 })
 
 export const agentExternalResolver = resolve({})
@@ -85,7 +85,7 @@ export const agentQueryProperties = Type.Pick(agentSchema, [
 export const agentQuerySchema = Type.Intersect(
   [
     querySyntax(agentQueryProperties),
-    // Add additional query properties here
+    // Add additional query properties huere
     Type.Object({}, { additionalProperties: false })
     // Type.Object({})
   ],
