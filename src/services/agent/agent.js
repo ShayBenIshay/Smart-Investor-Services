@@ -38,21 +38,18 @@ export const agent = (app) => {
       all: [schemaHooks.resolveExternal(agentExternalResolver), schemaHooks.resolveResult(agentResolver)]
     },
     before: {
-      all: [schemaHooks.validateQuery(agentQueryValidator), schemaHooks.resolveQuery(agentQueryResolver)],
+      all: [
+        authenticate('jwt'),
+        schemaHooks.validateQuery(agentQueryValidator),
+        schemaHooks.resolveQuery(agentQueryResolver)
+      ],
       find: [],
       get: [],
-      // create: [schemaHooks.validateData(agentDataValidator), schemaHooks.resolveData(agentDataResolver)],
-      create: [authenticate('jwt'), handleCash, schemaHooks.resolveData(agentDataResolver)],
-      patch: [
-        authenticate('jwt'),
-        schemaHooks.validateData(agentPatchValidator),
-        schemaHooks.resolveData(agentPatchResolver)
-      ],
-      remove: [authenticate('jwt')]
+      create: [schemaHooks.validateData(agentDataValidator), schemaHooks.resolveData(agentDataResolver)],
+      patch: [schemaHooks.validateData(agentPatchValidator), schemaHooks.resolveData(agentPatchResolver)]
     },
     after: {
       create: [createDocument, createAgentPortfolio]
-      // create: [createAgentPortfolio]
     },
     error: {
       all: []

@@ -85,9 +85,8 @@ export const agentQueryProperties = Type.Pick(agentSchema, [
 export const agentQuerySchema = Type.Intersect(
   [
     querySyntax(agentQueryProperties),
-    // Add additional query properties huere
+    // Add additional query properties here
     Type.Object({}, { additionalProperties: false })
-    // Type.Object({})
   ],
   { additionalProperties: false }
 )
