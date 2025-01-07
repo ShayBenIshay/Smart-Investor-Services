@@ -47,6 +47,12 @@ export class PortfolioService extends MongoDBService {
       const cash = portfolio.data[0].cash
       const transactions = await this.app.service('transactions').find(newParams)
       const calcTotals = this._calculatePositions(transactions.data)
+      // Filter out positions with zero shares
+      Object.keys(calcTotals).forEach((ticker) => {
+        if (calcTotals[ticker].position === 0) {
+          delete calcTotals[ticker]
+        }
+      })
       await this._addCurrentPrices(calcTotals)
 
       const totalValue = this._calculateTotalValue(calcTotals, cash)
