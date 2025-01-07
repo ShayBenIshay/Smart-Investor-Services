@@ -1,7 +1,7 @@
 // For more information about this file see https://dove.feathersjs.com/guides/cli/service.html
 import { authenticate } from '@feathersjs/authentication'
-
 import { hooks as schemaHooks } from '@feathersjs/schema'
+import { filterUserPortfolio } from '../../hooks/filter-user-portfolio'
 
 import {
   portfolioDataValidator,
@@ -43,8 +43,8 @@ export const portfolio = (app) => {
         schemaHooks.validateQuery(portfolioQueryValidator),
         schemaHooks.resolveQuery(portfolioQueryResolver)
       ],
-      find: [],
-      get: [],
+      find: [filterUserPortfolio],
+      get: [filterUserPortfolio],
       create: [
         schemaHooks.validateData(portfolioDataValidator),
         schemaHooks.resolveData(portfolioDataResolver)
@@ -53,7 +53,7 @@ export const portfolio = (app) => {
         schemaHooks.validateData(portfolioPatchValidator),
         schemaHooks.resolveData(portfolioPatchResolver)
       ],
-      remove: []
+      remove: [filterUserPortfolio]
     },
     after: {
       all: []

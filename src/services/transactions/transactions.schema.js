@@ -1,6 +1,7 @@
 import { resolve } from '@feathersjs/schema'
 import { Type, getValidator, querySyntax } from '@feathersjs/typebox'
 import { ObjectIdSchema } from '@feathersjs/typebox'
+import { ObjectId } from 'mongodb'
 
 import { dataValidator, queryValidator } from '../../validators'
 
@@ -10,69 +11,60 @@ export const transactionsSchema = Type.Object(
     userId: ObjectIdSchema(),
     ticker: Type.String(),
     price: Type.Number(),
-    operation: Type.String(),
+    operation: Type.String({ enum: ['buy', 'sell'] }),
     papers: Type.Number(),
-    updatedAt: Type.Object({
-      $date: Type.Object({
-        $numberLong: Type.String()
-      })
-    }),
-    createdAt: Type.Object({
-      $date: Type.Object({
-        $numberLong: Type.String()
-      })
-    })
+    executedAt: Type.String({ format: 'date-time' }),
+    createdAt: Type.String({ format: 'date-time' }),
+    updatedAt: Type.String({ format: 'date-time' })
   },
-  { $id: 'Transactions' }
+  { $id: 'Transactions', additionalProperties: false }
 )
+
 export const transactionsValidator = getValidator(transactionsSchema, dataValidator)
 export const transactionsResolver = resolve({})
 
 export const transactionsExternalResolver = resolve({})
 
+// Schema for creating new entries
 export const transactionsDataSchema = Type.Pick(
   transactionsSchema,
-  ['ticker', 'price', 'operation', 'papers', 'userId'],
+  ['ticker', 'price', 'operation', 'papers', 'executedAt'],
   {
     $id: 'TransactionsData'
   }
 )
 export const transactionsDataValidator = getValidator(transactionsDataSchema, dataValidator)
 export const transactionsDataResolver = resolve({
-  createdAt: async () => {
-    const now = new Date()
-    return { $date: { $numberLong: now.getTime().toString() } }
-  },
-  updatedAt: async () => {
-    const now = new Date()
-    return { $date: { $numberLong: now.getTime().toString() } }
+  createdAt: async () => new Date().toISOString(),
+  updatedAt: async () => new Date().toISOString(),
+  userId: async (_value, _data, context) => {
+    // Get the authenticated user's ID from the context
+    if (!context.params.user) {
+      throw new Error('User must be authenticated')
+    }
+    return new ObjectId(context.params.user._id)
   }
 })
 
+// Schema for updating existing entries
 export const transactionsPatchSchema = Type.Partial(transactionsSchema, {
   $id: 'TransactionsPatch'
 })
 export const transactionsPatchValidator = getValidator(transactionsPatchSchema, dataValidator)
 export const transactionsPatchResolver = resolve({
-  updatedAt: async () => {
-    const now = new Date()
-    return { $date: { $numberLong: now.getTime().toString() } }
-  }
+  updatedAt: async () => new Date().toISOString()
 })
 
+// Schema for allowed query properties
 export const transactionsQueryProperties = Type.Pick(transactionsSchema, [
   '_id',
   'userId',
   'ticker',
-  'price',
-  'operation',
-  'papers',
-  'createdAt',
-  'updatedAt'
+  'operation'
 ])
-export const transactionsQuerySchema = Type.Intersect([
-  querySyntax(transactionsQueryProperties),
-  Type.Object({})
-])
+export const transactionsQuerySchema = Type.Intersect(
+  [querySyntax(transactionsQueryProperties), Type.Object({}, { additionalProperties: false })],
+  { additionalProperties: false }
+)
 export const transactionsQueryValidator = getValidator(transactionsQuerySchema, queryValidator)
 export const transactionsQueryResolver = resolve({})

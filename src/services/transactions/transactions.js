@@ -1,8 +1,8 @@
 import { authenticate } from '@feathersjs/authentication'
-
 import { hooks as schemaHooks } from '@feathersjs/schema'
-// import { filterByUser } from '../../hooks/filter-transactions'
-import { createDocument } from '../../hooks/create-document'
+
+import { logCreateDocument } from '../../hooks/log-create-document.js'
+import { filterUserTransactions } from '../../hooks/filter-user-transactions.js'
 
 import {
   transactionsDataValidator,
@@ -26,6 +26,7 @@ export const transactions = (app) => {
     methods: transactionsMethods,
     events: []
   })
+
   app.service(transactionsPath).hooks({
     around: {
       all: [
@@ -39,9 +40,8 @@ export const transactions = (app) => {
         schemaHooks.validateQuery(transactionsQueryValidator),
         schemaHooks.resolveQuery(transactionsQueryResolver)
       ],
-      // find: [filterByUser],
-      find: [],
-      get: [],
+      find: [filterUserTransactions],
+      get: [filterUserTransactions],
       create: [
         schemaHooks.validateData(transactionsDataValidator),
         schemaHooks.resolveData(transactionsDataResolver)
@@ -50,10 +50,10 @@ export const transactions = (app) => {
         schemaHooks.validateData(transactionsPatchValidator),
         schemaHooks.resolveData(transactionsPatchResolver)
       ],
-      remove: []
+      remove: [filterUserTransactions]
     },
     after: {
-      create: [createDocument]
+      create: [logCreateDocument]
     },
     error: {
       all: []

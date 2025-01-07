@@ -1,9 +1,7 @@
 // For more information about this file see https://dove.feathersjs.com/guides/cli/service.html
 import { authenticate } from '@feathersjs/authentication'
-
 import { hooks as schemaHooks } from '@feathersjs/schema'
-import { createDocument } from '../../hooks/create-document'
-import { createPortfolio } from '../../hooks/create-portfolio'
+import { logUserActions } from '../../hooks/log-user-actions'
 
 import {
   userDataValidator,
@@ -19,6 +17,8 @@ import {
 import type { Application } from '../../declarations'
 import { UserService, getOptions } from './users.class'
 import { userPath, userMethods } from './users.shared'
+import { validateUniqueEmail } from '../../hooks/validate-unique-email'
+import { createPortfolio } from '../../hooks/create-portfolio'
 
 export * from './users.class'
 export * from './users.schema'
@@ -32,6 +32,7 @@ export const user = (app: Application) => {
     // You can add additional custom events to be sent to clients here
     events: []
   })
+
   // Initialize hooks
   app.service(userPath).hooks({
     around: {
@@ -47,12 +48,21 @@ export const user = (app: Application) => {
       all: [schemaHooks.validateQuery(userQueryValidator), schemaHooks.resolveQuery(userQueryResolver)],
       find: [],
       get: [],
-      create: [schemaHooks.validateData(userDataValidator), schemaHooks.resolveData(userDataResolver)],
-      patch: [schemaHooks.validateData(userPatchValidator), schemaHooks.resolveData(userPatchResolver)],
-      remove: []
+      create: [
+        validateUniqueEmail,
+        schemaHooks.validateData(userDataValidator),
+        schemaHooks.resolveData(userDataResolver),
+        logUserActions('create')
+      ],
+      patch: [
+        schemaHooks.validateData(userPatchValidator),
+        schemaHooks.resolveData(userPatchResolver),
+        logUserActions('update')
+      ],
+      remove: [logUserActions('remove')]
     },
     after: {
-      create: [createDocument, createPortfolio]
+      // create: [createPortfolio]
     },
     error: {
       all: []

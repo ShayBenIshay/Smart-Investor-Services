@@ -7,11 +7,11 @@ import { cache } from './cache/cache'
 
 import type { Application } from '../declarations'
 
-export const services = (app: Application) => {
+export const services = async (app: Application) => {
   app.configure(throttle)
   app.configure(agent)
   app.configure(portfolio)
   app.configure(transactions)
   app.configure(user)
-  app.configure(cache)
+  await app.configure(cache)
 }

@@ -10,7 +10,9 @@ export class AgentService extends MongoDBService {
   }
 
   async create(params) {
+    console.log('is it hereeee?')
     const { func, ...object } = params
+    console.log(object)
     if (func === 'create') {
       return await super.create(object)
     }

@@ -17,7 +17,7 @@ export * from './cache.class.js'
 export * from './cache.schema.js'
 
 // A configure function that registers the service and its hooks via `app.configure`
-export const cache = (app) => {
+export const cache = async (app) => {
   // Register our service on the Feathers application
   app.use(cachePath, new CacheService(getOptions(app)), {
     // A list of all methods this service exposes externally
@@ -25,8 +25,15 @@ export const cache = (app) => {
     // You can add additional custom events to be sent to clients here
     events: []
   })
+
+  // Create indexes
+  const service = app.service(cachePath)
+  const model = await service.options.Model
+  await model.createIndex({ ticker: 1 }, { unique: true })
+  await model.createIndex({ 'prices.date': 1 })
+
   // Initialize hooks
-  app.service(cachePath).hooks({
+  service.hooks({
     around: {
       all: [
         // authenticate('jwt'),

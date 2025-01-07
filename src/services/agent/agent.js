@@ -2,7 +2,6 @@
 import { authenticate } from '@feathersjs/authentication'
 import { createDocument } from '../../hooks/create-document'
 import { createAgentPortfolio } from '../../hooks/create-portfolio'
-import { handleCash } from '../../hooks/handle-cash'
 
 import { hooks as schemaHooks } from '@feathersjs/schema'
 

@@ -1,41 +1,67 @@
 import { MongoDBService } from '@feathersjs/mongodb'
 import { getLastTradingDate } from '../../utils'
+import { BadRequest } from '@feathersjs/errors'
+import { ObjectId } from 'mongodb'
+import { logger } from '../../utils/logger'
 
-// By default calls the standard MongoDB adapter service methods but can be customized with your own functionality.
 export class PortfolioService extends MongoDBService {
   setup(app) {
     this.app = app
   }
 
   async find(params) {
-    const query = params.query
-    if (query.name === 'calculate') {
-      return await this.calculateTotals(query)
+    const { query } = params
+    // If no name parameter, or name=find, just return the portfolio data
+    if (!query.name || query.name === 'find') {
+      return await super.find(params)
     }
-    if (query.name === 'find') {
-      return await super.find({
+
+    // Only calculate if explicitly requested
+    if (query.name === 'calculate') {
+      return await this.calculateTotals(params)
+    }
+
+    // Default fallback
+    return await super.find(params)
+  }
+
+  async calculateTotals(params) {
+    try {
+      const { name, ...restParams } = params
+
+      const newParams = {
+        ...restParams,
         query: {
-          userId: query.userId
+          userId: new ObjectId(restParams.query.userId)
         }
-      })
+      }
+      const portfolio = await super.find(newParams)
+
+      logger.info(`Calculating totals for user ${restParams.query.userId}`)
+
+      if (!portfolio.data || portfolio.data.length === 0) {
+        logger.error('Portfolio not found')
+        throw new BadRequest('Portfolio not found')
+      }
+
+      const cash = portfolio.data[0].cash
+      const transactions = await this.app.service('transactions').find(newParams)
+      const calcTotals = this._calculatePositions(transactions.data)
+      await this._addCurrentPrices(calcTotals)
+
+      const totalValue = this._calculateTotalValue(calcTotals, cash)
+      this._calculatePercentages(calcTotals, totalValue)
+
+      logger.info(`Calculated totals for user ${restParams.query.userId}: ${JSON.stringify(calcTotals)}`)
+      return calcTotals
+    } catch (error) {
+      logger.error(error.message)
+      throw new BadRequest(error.message)
     }
   }
 
-  async calculateTotals(query) {
-    const { userId } = query
-    const transactions = await this.app.service('transactions').find({
-      query: {
-        userId
-      }
-    })
-    const portfolio = await super.find({
-      query: {
-        userId
-      }
-    })
-    const cash = portfolio.data[0].cash
-
-    const calcTotals = transactions.reduce((acc, transaction) => {
+  _calculatePositions(transactions) {
+    return transactions.reduce((acc, transaction) => {
       const { ticker, price, papers, operation } = transaction
 
       if (!acc[ticker]) {
@@ -61,53 +87,66 @@ export class PortfolioService extends MongoDBService {
 
       return acc
     }, {})
+  }
 
-    let totalValue = cash
-
+  async _addCurrentPrices(calcTotals) {
     for (const ticker of Object.keys(calcTotals)) {
       try {
-        const date = getLastTradingDate()
-        let currentPrice
-        try {
-          const queryResponse = await this.app.service('cache').find({
-            query: { ticker, date }
-          })
-          currentPrice = queryResponse.closePrice || null
-        } catch (error) {
-          currentPrice = null
-        }
-        if (!currentPrice) {
-          const queryResponse = await this.app.service('throttle').find({
-            query: {
-              name: 'prev',
-              ticker,
-              priority: 'user'
-            }
-          })
-          const { close: closePrice } = queryResponse[0]
-
-          await this.app.service('cache').create({
-            ticker,
-            date,
-            closePrice
-          })
-          currentPrice = closePrice
-        }
+        const currentPrice = await this._getCurrentPrice(ticker)
         calcTotals[ticker].currentPrice = currentPrice
         calcTotals[ticker].change = currentPrice - calcTotals[ticker].avgBuy
         calcTotals[ticker].currentValue = currentPrice * calcTotals[ticker].position
-        totalValue += calcTotals[ticker].currentValue || 0
         calcTotals[ticker].unrealizedPL = calcTotals[ticker].currentValue - calcTotals[ticker].totalSpent
       } catch (error) {
-        console.log(`Failed to fetch price for ${ticker}`)
+        console.log(`Failed to fetch price for ${ticker}:`, error.message)
         calcTotals[ticker].currentPrice = null
       }
     }
+  }
 
+  async _getCurrentPrice(ticker) {
+    const date = getLastTradingDate()
+
+    // Try to get price from cache
+    try {
+      const cacheResponse = await this.app.service('cache').find({
+        query: { ticker, date }
+      })
+      if (cacheResponse.closePrice) {
+        return cacheResponse.closePrice
+      }
+    } catch (error) {
+      // Continue if cache miss
+    }
+
+    // Get price from throttle service
+    const throttleResponse = await this.app.service('throttle').find({
+      query: {
+        name: 'prev',
+        ticker,
+        priority: 'user'
+      }
+    })
+    const { close: closePrice } = throttleResponse[0]
+
+    // Cache the result
+    await this.app.service('cache').create({
+      ticker,
+      date,
+      closePrice
+    })
+
+    return closePrice
+  }
+
+  _calculateTotalValue(calcTotals, cash) {
+    return Object.values(calcTotals).reduce((total, stock) => total + (stock.currentValue || 0), cash)
+  }
+
+  _calculatePercentages(calcTotals, totalValue) {
     for (const ticker of Object.keys(calcTotals)) {
       calcTotals[ticker].percentage = (calcTotals[ticker].currentValue / totalValue) * 100
     }
-    return calcTotals
   }
 }
 

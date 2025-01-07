@@ -6,8 +6,12 @@ import { dataValidator, queryValidator } from '../../validators.js'
 
 const PriceSchema = Type.Object(
   {
-    date: Type.String(),
-    closePrice: Type.Number()
+    date: Type.String({
+      pattern: '^\\d{4}-\\d{2}-\\d{2}$' // YYYY-MM-DD format
+    }),
+    closePrice: Type.Number({
+      minimum: 0
+    })
   },
   { $id: 'PriceResponse', additionalProperties: false }
 )
@@ -15,10 +19,15 @@ const PriceSchema = Type.Object(
 export const cacheSchema = Type.Object(
   {
     _id: ObjectIdSchema(),
-    ticker: Type.String(),
-    prices: Type.Array(PriceSchema)
+    ticker: Type.String({
+      minLength: 1,
+      maxLength: 10
+    }),
+    prices: Type.Array(PriceSchema, {
+      minItems: 1
+    })
   },
-  { $id: 'Cache', additionalProperties: true }
+  { $id: 'Cache', additionalProperties: false }
 )
 
 export const cacheValidator = getValidator(cacheSchema, dataValidator)
@@ -27,9 +36,24 @@ export const cacheResolver = resolve({})
 export const cacheExternalResolver = resolve({})
 
 // Schema for creating new entries
-export const cacheDataSchema = Type.Pick(cacheSchema, ['ticker', 'date', 'closePrice'], {
-  $id: 'CacheData'
-})
+export const cacheDataSchema = Type.Object(
+  {
+    ticker: Type.String({
+      minLength: 1,
+      maxLength: 10
+    }),
+    date: Type.String({
+      pattern: '^\\d{4}-\\d{2}-\\d{2}$' // YYYY-MM-DD format
+    }),
+    closePrice: Type.Number({
+      minimum: 0
+    })
+  },
+  {
+    $id: 'CacheData',
+    additionalProperties: false
+  }
+)
 export const cacheDataValidator = getValidator(cacheDataSchema, dataValidator)
 export const cacheDataResolver = resolve({})
 

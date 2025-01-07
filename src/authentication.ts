@@ -4,6 +4,7 @@ import { oauth, OAuthStrategy } from '@feathersjs/authentication-oauth'
 import { Params } from '@feathersjs/feathers'
 
 import type { Application } from './declarations'
+import { ensurePortfolio } from './hooks/ensure-portfolio'
 
 declare module './declarations' {
   interface ServiceTypes {
@@ -54,4 +55,11 @@ export const authentication = (app: Application) => {
 
   app.use('authentication', authentication)
   app.configure(oauth())
+
+  // Add the ensure-portfolio hook after successful authentication
+  app.service('authentication').hooks({
+    after: {
+      create: [ensurePortfolio] // This runs after successful login
+    }
+  })
 }
