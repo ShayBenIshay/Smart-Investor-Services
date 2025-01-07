@@ -10,7 +10,7 @@ export class CacheService extends MongoDBService {
 
     if (!ticker) {
       logger.error('Missing ticker query param')
-      return { message: 'Missing ticker query param' }
+      throw new Error('Missing ticker query param')
     }
 
     const queryResponse = await super.find({
@@ -39,34 +39,32 @@ export class CacheService extends MongoDBService {
 
   async create(data, params) {
     try {
-      const existing = await this.find({
+      const cacheResponse = await this.find({
         query: { ticker: data.ticker }
       })
 
-      if (existing && existing.message) {
-        return existing // Return the error message if it exists
-      }
-
-      if (!existing) {
+      // Check if existing is an object with a message indicating ticker not found
+      if (cacheResponse.message && cacheResponse.message.includes('not in cache')) {
+        // Create new entry since ticker doesn't exist
         const pricesArr = [{ date: data.date, closePrice: data.closePrice }]
         return super.create({ ticker: data.ticker, prices: pricesArr })
       }
 
       // If we get here, the ticker exists
-      const priceExists = existing.prices?.some((price) => price.date === data.date)
+      const priceExists = cacheResponse.prices?.some((price) => price.date === data.date)
       if (priceExists) {
-        return existing
+        return cacheResponse
       }
 
       const updatedPrices = [
-        ...existing.prices,
+        ...cacheResponse.prices,
         {
           date: data.date,
           closePrice: data.closePrice
         }
       ]
 
-      return this.patch(existing._id, { prices: updatedPrices })
+      return this.patch(cacheResponse._id, { prices: updatedPrices })
     } catch (error) {
       logger.error(`Error in cache create: ${error.message}`)
       return { message: `Error in cache create: ${error.message}` }
