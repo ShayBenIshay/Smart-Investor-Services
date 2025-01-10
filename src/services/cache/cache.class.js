@@ -5,8 +5,6 @@ import { logger } from '../../utils/logger.js'
 export class CacheService extends MongoDBService {
   async find(params) {
     const { ticker, date } = params.query
-    console.log('ticker', ticker)
-    console.log('date', date)
 
     if (!ticker) {
       logger.error('Missing ticker query param')

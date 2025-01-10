@@ -227,6 +227,16 @@ export class AgentService extends MongoDBService {
         // Get current prices and calculate values
         await this._addCurrentPrices(calcTotals)
 
+        // Calculate total portfolio value
+        const totalValue = Object.values(calcTotals).reduce((sum, position) => {
+          return sum + position.currentValue
+        }, 0)
+
+        // Add percentage to each position
+        Object.values(calcTotals).forEach((position) => {
+          position.percentage = Number(((position.currentValue / totalValue) * 100).toFixed(2))
+        })
+
         logger.info(`Calculated totals for agent ${query.agentId}:`, JSON.stringify(calcTotals, null, 2))
         return calcTotals
       } catch (error) {
@@ -256,10 +266,18 @@ export class AgentService extends MongoDBService {
           })
           return { agent, portfolio, data: response.data }
         } catch (error) {
-          console.error('error occurred', error)
-        }
+          logger.error('Failed to connect to Python service:', error.message)
 
-        return { agent, portfolio }
+          // Check if it's a connection refused error
+          if (error.code === 'ECONNREFUSED') {
+            throw new Error(
+              'Python service is not available. Please ensure the service is running on port 5000.'
+            )
+          }
+
+          // For other types of errors
+          throw new Error(`Failed to get portfolio from Python service: ${error.message}`)
+        }
       } catch (error) {
         logger.error('Error in build function:', error)
         throw error
@@ -369,7 +387,7 @@ export class AgentService extends MongoDBService {
           }
         })
 
-        const currentPrice = priceResponse[0].close
+        const currentPrice = priceResponse.close
         calcTotals[ticker].currentPrice = currentPrice
         calcTotals[ticker].change = currentPrice - calcTotals[ticker].avgBuy
         calcTotals[ticker].currentValue = currentPrice * calcTotals[ticker].position

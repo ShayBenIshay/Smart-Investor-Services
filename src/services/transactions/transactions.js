@@ -3,7 +3,6 @@ import { hooks as schemaHooks } from '@feathersjs/schema'
 
 import { logCreateDocument } from '../../hooks/log-create-document.js'
 import { filterUserTransactions } from '../../hooks/filter-user-transactions.js'
-// import { allowAgent } from '../../hooks/allow-agent.js'
 
 import {
   transactionsDataValidator,
@@ -31,7 +30,6 @@ export const transactions = (app) => {
   app.service(transactionsPath).hooks({
     around: {
       all: [
-        // allowAgent,
         authenticate('jwt'),
         schemaHooks.resolveExternal(transactionsExternalResolver),
         schemaHooks.resolveResult(transactionsResolver)

@@ -2,6 +2,7 @@
 import { MongoDBService } from '@feathersjs/mongodb'
 import enqueue from '../../throttleClass.js'
 import { logger } from '../../utils/logger'
+import { getLastTradingDate } from '../../utils'
 
 export class ThrottleService extends MongoDBService {
   constructor(options) {
@@ -11,6 +12,10 @@ export class ThrottleService extends MongoDBService {
       successfulRequests: 0,
       failedRequests: 0
     }
+  }
+
+  setup(app) {
+    this.app = app
   }
 
   validateParams(params, required) {
@@ -49,7 +54,7 @@ export class ThrottleService extends MongoDBService {
 
     const { ticker, date, priority = 'system' } = query
     return await this.handleEnqueue('open-close', { ticker, date, priority }, (data) => [
-      { close: data?.close }
+      { ticker, close: data?.close }
     ])
   }
 
@@ -60,7 +65,9 @@ export class ThrottleService extends MongoDBService {
     }
 
     const { ticker, priority = 'system' } = query
-    return await this.handleEnqueue('prev', { ticker, priority }, (data) => [{ close: data?.results[0]?.c }])
+    return await this.handleEnqueue('prev', { ticker, priority }, (data) => {
+      return { ticker, close: data?.results[0]?.c }
+    })
   }
 
   async getAggregateData(query) {
@@ -105,6 +112,21 @@ export class ThrottleService extends MongoDBService {
       }
 
       this.requestStats.successfulRequests++
+
+      // Cache the result if it's from prev endpoint and has a valid price
+      if (query.name === 'prev' && result.close) {
+        try {
+          const date = getLastTradingDate()
+          await this.app.service('cache').create({
+            ticker: result.ticker,
+            closePrice: result.close,
+            date: date
+          })
+          logger.info(`Cached price for ${result.ticker}: ${result.close}`)
+        } catch (error) {
+          logger.error(`Failed to cache price for ${result.ticker}:`, error)
+        }
+      }
       return result
     } catch (error) {
       this.requestStats.failedRequests++
