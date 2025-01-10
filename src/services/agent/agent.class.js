@@ -4,6 +4,7 @@ import axios from 'axios'
 import { response } from 'express'
 import { ObjectId } from 'mongodb'
 import { logger } from '../../utils/logger'
+import { getLastTradingDate } from '../../utils'
 // By default calls the standard MongoDB adapter service methods but can be customized with your own functionality.
 export class AgentService extends MongoDBService {
   setup(app) {
@@ -378,25 +379,70 @@ export class AgentService extends MongoDBService {
   }
 
   async _addCurrentPrices(calcTotals) {
-    for (const ticker of Object.keys(calcTotals)) {
-      try {
-        const priceResponse = await this.app.service('throttle').find({
-          query: {
-            name: 'prev',
-            ticker
-          }
-        })
+    logger.info(`Starting to fetch prices for ${Object.keys(calcTotals).length} tickers`)
+    const startTime = Date.now()
 
-        const currentPrice = priceResponse.close
-        calcTotals[ticker].currentPrice = currentPrice
-        calcTotals[ticker].change = currentPrice - calcTotals[ticker].avgBuy
-        calcTotals[ticker].currentValue = currentPrice * calcTotals[ticker].position
-        calcTotals[ticker].unrealizedPL = calcTotals[ticker].currentValue - calcTotals[ticker].totalSpent
+    for (const ticker of Object.keys(calcTotals)) {
+      const tickerStartTime = Date.now()
+      try {
+        const currentPrice = await this._getCurrentPrice(ticker)
+        if (currentPrice !== null) {
+          this._updatePositionWithPrice(calcTotals[ticker], currentPrice)
+        }
+        logger.info(`Processed ${ticker} in ${Date.now() - tickerStartTime}ms`)
       } catch (error) {
-        logger.error(`Failed to fetch price for ${ticker}:`, error)
+        logger.error(`Failed to fetch price for ${ticker} after ${Date.now() - tickerStartTime}ms:`, error)
         calcTotals[ticker].currentPrice = null
       }
     }
+
+    logger.info(`Completed all price fetches in ${Date.now() - startTime}ms`)
+  }
+
+  async _getCurrentPrice(ticker) {
+    const date = getLastTradingDate()
+    const startTime = Date.now()
+
+    // Try cache first
+    try {
+      logger.info(`Attempting to fetch ${ticker} price from cache for date ${date}`)
+      const cacheResponse = await this.app.service('cache').find({
+        query: { ticker, date }
+      })
+
+      // The response is already in the format { date, closePrice }
+      if (cacheResponse && cacheResponse.closePrice) {
+        const price = cacheResponse.closePrice
+        const timeSpent = Date.now() - startTime
+        logger.info(`Cache HIT for ${ticker}: ${price} (took ${timeSpent}ms)`)
+        return price
+      }
+      logger.info(`Cache MISS for ${ticker} (took ${Date.now() - startTime}ms)`)
+    } catch (error) {
+      logger.info(`Cache error for ${ticker}: ${error.message} (took ${Date.now() - startTime}ms)`)
+    }
+
+    // If we get here, try throttle service
+    logger.info(`Fetching ${ticker} price from throttle service`)
+    const throttleStartTime = Date.now()
+    const priceResponse = await this.app.service('throttle').find({
+      query: {
+        name: 'prev',
+        ticker
+      }
+    })
+    logger.info(`Throttle service response for ${ticker} took ${Date.now() - throttleStartTime}ms`)
+
+    const totalTime = Date.now() - startTime
+    logger.info(`Total time to get price for ${ticker}: ${totalTime}ms`)
+    return priceResponse.close
+  }
+
+  _updatePositionWithPrice(position, currentPrice) {
+    position.currentPrice = currentPrice
+    position.change = currentPrice - position.avgBuy
+    position.currentValue = currentPrice * position.position
+    position.unrealizedPL = position.currentValue - position.totalSpent
   }
 
   _calculatePositionChanges(newPositions, oldTotals) {
