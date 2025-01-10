@@ -3,16 +3,23 @@ import { ObjectId } from 'mongodb'
 export const filterUserTransactions = async (context) => {
   const { params } = context
 
-  // Ensure we have an authenticated user
   if (!params.user) {
-    return context
+    throw new Error('User must be authenticated')
   }
 
-  // Add userId to the query to only return user's transactions
-  params.query = {
+  // Start with userId filter
+  const query = {
     ...params.query,
     userId: new ObjectId(params.user._id)
   }
+
+  // If agentId is provided in query, add it to the filter
+  if (params.query.agentId) {
+    query.agentId = new ObjectId(params.query.agentId)
+  }
+
+  // Update the query in the context
+  context.params.query = query
 
   return context
 }

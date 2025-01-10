@@ -1,9 +1,7 @@
 // For more information about this file see https://dove.feathersjs.com/guides/cli/service.html
-import { authenticate } from '@feathersjs/authentication'
+import { hooks as schemaHooks } from '@feathersjs/schema'
 import { createDocument } from '../../hooks/create-document'
 import { createAgentPortfolio } from '../../hooks/create-portfolio'
-
-import { hooks as schemaHooks } from '@feathersjs/schema'
 
 import {
   agentDataValidator,
@@ -37,18 +35,18 @@ export const agent = (app) => {
       all: [schemaHooks.resolveExternal(agentExternalResolver), schemaHooks.resolveResult(agentResolver)]
     },
     before: {
-      all: [
-        authenticate('jwt'),
-        schemaHooks.validateQuery(agentQueryValidator),
-        schemaHooks.resolveQuery(agentQueryResolver)
-      ],
+      all: [schemaHooks.validateQuery(agentQueryValidator), schemaHooks.resolveQuery(agentQueryResolver)],
       find: [],
       get: [],
-      create: [schemaHooks.validateData(agentDataValidator), schemaHooks.resolveData(agentDataResolver)],
+      create: [
+        schemaHooks.validateData(agentDataValidator),
+        schemaHooks.resolveData(agentDataResolver),
+        createAgentPortfolio
+      ],
       patch: [schemaHooks.validateData(agentPatchValidator), schemaHooks.resolveData(agentPatchResolver)]
     },
     after: {
-      create: [createDocument, createAgentPortfolio]
+      all: []
     },
     error: {
       all: []

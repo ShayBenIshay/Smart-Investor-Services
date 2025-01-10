@@ -4,6 +4,22 @@ import type { TransportConnection, Application } from '@feathersjs/feathers'
 import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
 
+import { agentTransactionsClient } from './services/agent-transactions/agent-transactions.shared'
+export type {
+  AgentTransactions,
+  AgentTransactionsData,
+  AgentTransactionsQuery,
+  AgentTransactionsPatch
+} from './services/agent-transactions/agent-transactions.shared'
+
+import { agentPortfolioClient } from './services/agent-portfolio/agent-portfolio.shared'
+export type {
+  AgentPortfolio,
+  AgentPortfolioData,
+  AgentPortfolioQuery,
+  AgentPortfolioPatch
+} from './services/agent-portfolio/agent-portfolio.shared'
+
 import { throttleClient } from './services/throttle/throttle.shared.js'
 import { agentClient } from './services/agent/agent.shared'
 
@@ -31,7 +47,7 @@ export type ClientApplication = Application<ServiceTypes, Configuration>
  * @see https://dove.feathersjs.com/api/client.html
  * @returns The Feathers client application
  */
-export const createClient = <Configuration = any>(
+export const createClient = <Configuration = any,>(
   connection: TransportConnection<ServiceTypes>,
   authenticationOptions: Partial<AuthenticationClientOptions> = {}
 ) => {
@@ -48,5 +64,7 @@ export const createClient = <Configuration = any>(
 
   client.configure(throttleClient)
   client.configure(agentClient)
+  client.configure(agentPortfolioClient)
+  client.configure(agentTransactionsClient)
   return client
 }

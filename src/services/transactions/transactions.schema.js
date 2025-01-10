@@ -9,6 +9,7 @@ export const transactionsSchema = Type.Object(
   {
     _id: ObjectIdSchema(),
     userId: ObjectIdSchema(),
+    agentId: Type.Optional(ObjectIdSchema()),
     ticker: Type.String(),
     price: Type.Number(),
     operation: Type.String({ enum: ['buy', 'sell'] }),
@@ -28,7 +29,7 @@ export const transactionsExternalResolver = resolve({})
 // Schema for creating new entries
 export const transactionsDataSchema = Type.Pick(
   transactionsSchema,
-  ['ticker', 'price', 'operation', 'papers', 'executedAt'],
+  ['ticker', 'price', 'operation', 'papers', 'executedAt', 'agentId'],
   {
     $id: 'TransactionsData'
   }
@@ -43,6 +44,12 @@ export const transactionsDataResolver = resolve({
       throw new Error('User must be authenticated')
     }
     return new ObjectId(context.params.user._id)
+  },
+  agentId: async (value) => {
+    if (value) {
+      return new ObjectId(value)
+    }
+    return undefined
   }
 })
 
@@ -60,11 +67,27 @@ export const transactionsQueryProperties = Type.Pick(transactionsSchema, [
   '_id',
   'userId',
   'ticker',
-  'operation'
+  'operation',
+  'agentId'
 ])
 export const transactionsQuerySchema = Type.Intersect(
-  [querySyntax(transactionsQueryProperties), Type.Object({}, { additionalProperties: false })],
+  [
+    querySyntax(transactionsQueryProperties),
+    Type.Object(
+      {
+        agentId: Type.Optional(Type.String())
+      },
+      { additionalProperties: false }
+    )
+  ],
   { additionalProperties: false }
 )
 export const transactionsQueryValidator = getValidator(transactionsQuerySchema, queryValidator)
-export const transactionsQueryResolver = resolve({})
+export const transactionsQueryResolver = resolve({
+  agentId: async (value) => {
+    if (value) {
+      return new ObjectId(value)
+    }
+    return undefined
+  }
+})

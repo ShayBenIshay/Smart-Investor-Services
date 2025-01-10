@@ -34,7 +34,7 @@ export const throttle = (app) => {
   app.service(throttlePath).hooks({
     around: {
       all: [
-        authenticate('jwt'),
+        // authenticate('jwt'),
         schemaHooks.resolveExternal(throttleExternalResolver),
         schemaHooks.resolveResult(throttleResolver)
       ]

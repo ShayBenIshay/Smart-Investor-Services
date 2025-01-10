@@ -35,6 +35,7 @@ export class PortfolioService extends MongoDBService {
           userId: new ObjectId(restParams.query.userId)
         }
       }
+      console.log('newParams', newParams)
       const portfolio = await super.find(newParams)
 
       logger.info(`Calculating totals for user ${restParams.query.userId}`)

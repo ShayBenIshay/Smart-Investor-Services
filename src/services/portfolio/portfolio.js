@@ -2,6 +2,7 @@
 import { authenticate } from '@feathersjs/authentication'
 import { hooks as schemaHooks } from '@feathersjs/schema'
 import { filterUserPortfolio } from '../../hooks/filter-user-portfolio'
+// import { allowAgent } from '../../hooks/allow-agent'
 
 import {
   portfolioDataValidator,
@@ -33,7 +34,8 @@ export const portfolio = (app) => {
   app.service(portfolioPath).hooks({
     around: {
       all: [
-        authenticate('jwt'),
+        // allowAgent,
+        // authenticate('jwt'),
         schemaHooks.resolveExternal(portfolioExternalResolver),
         schemaHooks.resolveResult(portfolioResolver)
       ]

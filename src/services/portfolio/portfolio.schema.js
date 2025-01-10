@@ -9,6 +9,7 @@ export const portfolioSchema = Type.Object(
   {
     _id: ObjectIdSchema(),
     userId: ObjectIdSchema(),
+    agentId: Type.Optional(ObjectIdSchema()),
     cash: Type.Number()
   },
   { $id: 'Portfolio', additionalProperties: false }
@@ -19,9 +20,13 @@ export const portfolioResolver = resolve({})
 
 export const portfolioExternalResolver = resolve({})
 
-export const portfolioDataSchema = Type.Pick(portfolioSchema, ['cash'], {
-  $id: 'PortfolioData'
-})
+export const portfolioDataSchema = Type.Object(
+  {
+    cash: Type.Number(),
+    agentId: Type.Optional(Type.String())
+  },
+  { $id: 'PortfolioData' }
+)
 export const portfolioDataValidator = getValidator(portfolioDataSchema, dataValidator)
 export const portfolioDataResolver = resolve({
   userId: async (_value, _data, context) => {
@@ -29,6 +34,12 @@ export const portfolioDataResolver = resolve({
       throw new Error('User must be authenticated')
     }
     return new ObjectId(context.params.user._id)
+  },
+  agentId: async (value) => {
+    if (value) {
+      return new ObjectId(value)
+    }
+    return undefined
   }
 })
 
@@ -38,7 +49,7 @@ export const portfolioPatchSchema = Type.Partial(portfolioSchema, {
 export const portfolioPatchValidator = getValidator(portfolioPatchSchema, dataValidator)
 export const portfolioPatchResolver = resolve({})
 
-export const portfolioQueryProperties = Type.Pick(portfolioSchema, ['_id', 'userId'])
+export const portfolioQueryProperties = Type.Pick(portfolioSchema, ['_id', 'userId', 'agentId'])
 export const portfolioQuerySchema = Type.Intersect(
   [
     querySyntax(portfolioQueryProperties),

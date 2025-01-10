@@ -1,4 +1,4 @@
-import { PortfolioData } from '../services/portfolio/portfolio.schema'
+import { logger } from '../utils/logger'
 
 export const createPortfolio = async (context) => {
   const { result, app } = context
@@ -9,8 +9,9 @@ export const createPortfolio = async (context) => {
       userId: result._id,
       cash: 10000
     })
+    logger.info(`Created portfolio for user: ${result._id}`)
   } catch (error) {
-    console.error('Failed to create portfolio:', error)
+    logger.error(`Failed to create portfolio: ${error.message}`)
     throw error
   }
 
@@ -18,18 +19,30 @@ export const createPortfolio = async (context) => {
 }
 
 export const createAgentPortfolio = async (context) => {
-  const { result, app, params } = context
-  if (!result._id) {
-    return context
-  }
-  const portfolioService = app.service('portfolio')
-  try {
-    await portfolioService.create({
-      cash: params.cash
-    })
-  } catch (error) {
-    console.error('Failed to create portfolio:', error)
-    throw error
+  const { data, app } = context
+
+  // Only proceed if this is an agent creation
+  if (data.func === 'agent' && data.cash) {
+    try {
+      // Remove cash from the agent data
+      const { cash, ...agentData } = data
+
+      // Create the agent first (without cash)
+      const agent = await context.service._create(agentData)
+
+      // Then create the portfolio using the agent service
+      await app.service('agent').create({
+        func: 'portfolio',
+        cash: cash,
+        agentId: agent._id
+      })
+
+      // Return the created agent
+      context.result = agent
+    } catch (error) {
+      logger.error('Failed to create agent portfolio:', error)
+      throw error
+    }
   }
 
   return context
