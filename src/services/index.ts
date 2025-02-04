@@ -6,6 +6,7 @@ import { portfolio } from './portfolio/portfolio'
 import { transactions } from './transactions/transactions'
 import { user } from './users/users'
 import { cache } from './cache/cache'
+import { health } from './health/health'
 
 import type { Application } from '../declarations'
 
@@ -18,4 +19,5 @@ export const services = async (app: Application) => {
   app.configure(transactions)
   app.configure(user)
   await app.configure(cache)
+  app.configure(health)
 }
