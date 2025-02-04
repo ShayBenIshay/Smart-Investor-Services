@@ -62,7 +62,7 @@ export const user = (app: Application) => {
       remove: [logUserActions('remove')]
     },
     after: {
-      // create: [createPortfolio]
+      create: [createPortfolio]
     },
     error: {
       all: []

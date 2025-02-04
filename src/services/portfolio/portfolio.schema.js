@@ -29,11 +29,18 @@ export const portfolioDataSchema = Type.Object(
 )
 export const portfolioDataValidator = getValidator(portfolioDataSchema, dataValidator)
 export const portfolioDataResolver = resolve({
-  userId: async (_value, _data, context) => {
-    if (!context.params.user) {
-      throw new Error('User must be authenticated')
+  userId: async (value, data, context) => {
+    if (value) {
+      return new ObjectId(value)
     }
-    return new ObjectId(context.params.user._id)
+    if (context.params.user) {
+      return new ObjectId(context.params.user._id)
+    }
+    if (context.data?.userId) {
+      return new ObjectId(context.data.userId)
+    }
+
+    throw new Error('User ID is required')
   },
   agentId: async (value) => {
     if (value) {

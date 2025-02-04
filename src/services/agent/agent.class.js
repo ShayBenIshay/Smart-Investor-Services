@@ -123,12 +123,10 @@ export class AgentService extends MongoDBService {
         const url = 'http://127.0.0.1:5000/manipulate-portfolio'
         logger.info('Calling manipulate-portfolio endpoint with data:', JSON.stringify(data, null, 2))
 
-        const response = await axios.get(url, {
-          params: {
-            cash: data.cash,
-            additionalInfo: data.additionalInfo,
-            totals: data.totals
-          }
+        const response = await axios.post(url, {
+          cash: data.cash,
+          additionalInfo: data.additionalInfo,
+          totals: data.totals
         })
 
         logger.info('Received response from manipulate-portfolio:', JSON.stringify(response.data, null, 2))
@@ -173,7 +171,7 @@ export class AgentService extends MongoDBService {
   async find(params) {
     logger.info('Agent find method called with params:', params)
     const query = params.query || {}
-
+    console.log(query.name)
     if (query.name === 'portfolio-changes') {
       try {
         // Step 1: Calculate target positions using calculate
@@ -239,7 +237,12 @@ export class AgentService extends MongoDBService {
         })
 
         logger.info(`Calculated totals for agent ${query.agentId}:`, JSON.stringify(calcTotals, null, 2))
-        return calcTotals
+
+        // Return the new format with totalValue and totals
+        return {
+          totalValue,
+          totals: calcTotals
+        }
       } catch (error) {
         logger.error(`Error calculating totals for agent ${query.agentId}:`, error)
         throw error

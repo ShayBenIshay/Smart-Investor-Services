@@ -35,10 +35,9 @@ export class PortfolioService extends MongoDBService {
           userId: new ObjectId(restParams.query.userId)
         }
       }
-      console.log('newParams', newParams)
-      const portfolio = await super.find(newParams)
-
-      logger.info(`Calculating totals for user ${restParams.query.userId}`)
+      // const portfolio = await super.find(newParams)
+      const portfolio = await super.find({})
+      logger.info(`Calculating totals for user ${newParams.query.userId}`)
 
       if (!portfolio.data || portfolio.data.length === 0) {
         logger.error('Portfolio not found')
@@ -59,7 +58,7 @@ export class PortfolioService extends MongoDBService {
       const totalValue = this._calculateTotalValue(calcTotals, cash)
       this._calculatePercentages(calcTotals, totalValue)
 
-      logger.info(`Calculated totals for user ${restParams.query.userId}: ${JSON.stringify(calcTotals)}`)
+      logger.info(`Calculated totals for user ${newParams.query.userId}: ${JSON.stringify(calcTotals)}`)
       return calcTotals
     } catch (error) {
       logger.error(error.message)

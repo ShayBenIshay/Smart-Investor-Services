@@ -19,7 +19,7 @@ app.configure(configuration(configurationValidator))
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_CLIENT,
+    origin: '*', // Allow all origins
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true
   })

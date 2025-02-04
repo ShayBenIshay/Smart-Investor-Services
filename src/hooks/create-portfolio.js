@@ -1,19 +1,12 @@
 import { logger } from '../utils/logger'
 
 export const createPortfolio = async (context) => {
-  const { result, app } = context
-  const portfolioService = app.service('portfolio')
+  const user = context.result
 
-  try {
-    await portfolioService.create({
-      userId: result._id,
-      cash: 10000
-    })
-    logger.info(`Created portfolio for user: ${result._id}`)
-  } catch (error) {
-    logger.error(`Failed to create portfolio: ${error.message}`)
-    throw error
-  }
+  await context.app.service('portfolio').create({
+    userId: user._id,
+    cash: 0
+  })
 
   return context
 }
